@@ -102,7 +102,7 @@ insertarABB t x = recAB (Bin Nil x Nil) (\i r d ri rd -> if x<=r
 
 insertarHeap :: (a -> a -> Bool) -> AB a -> a -> AB a
 insertarHeap f = recAB (\x-> (Bin Nil x Nil)) (\i r d ri rd x -> if f r x then elegirSubarbolParaInsertar r i r d (ri x) (rd x) else elegirSubarbolParaInsertar x i r d (ri r) (rd r)) 
-  where elegirSubarbolParaInsertar raiz i r d ri rd = if not (completo i) || completo (Bin i r d)
+  where elegirSubarbolParaInsertar raiz i r d ri rd = if not (completo i) && (altura i <= (altura d) ) || (altura i < (altura d) ) || completo (Bin i r d)
                                                       then Bin ri raiz d
                                                       else Bin i raiz rd
 
