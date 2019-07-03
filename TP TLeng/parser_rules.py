@@ -9,7 +9,7 @@ def p_primary_var_declaration(subexpressions):
 # S -> type T S'
 def p_var_declaration(subexpressions):
     'var_declaration : TYPEDEF field_declaration var_next_declaration'
-    subexpression[0] = VarDeclaration(subexpressions[2], subexpressions[3])
+    subexpressions[0] = VarDeclaration(subexpressions[2], subexpressions[3])
 
 # S' -> lambda
 def p_var_next_declaration_empty(subexpressions):
@@ -43,6 +43,7 @@ def p_basic_type_declaration(subexpressions):
 # E -> id
 def p_type_ref_declaration(subexpressions):
     'type_declaration : ID'
+    subexpressions[0] = TypeRefDeclaration(subexpressions[1])
 
 # E -> struct{E'}
 def p_type_struct_declaration(subexpressions):
