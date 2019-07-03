@@ -63,13 +63,12 @@ class TypeRefDeclaration():
 		self.id = id
 		self.referencias = [id.value]
 	
-	# dicc e isArray tendrían que estar en el init o se pueden declarar así nomás?
 	def setDicc(self, dicc, isArray):
 		self.dicc = dicc
 		self.isArray = isArray
 	
 	def generate(self):
-		generate(self.isArray, self.dicc.get(self.id.value))
+		return generate(self.isArray, self.dicc.get(self.id.value))
 
 class TypeStructDeclaration():
 
@@ -83,7 +82,7 @@ class TypeStructDeclaration():
 		self.next_declaration.setDicc(self.dicc)
 	
 	def generate(self):
-		generate(self.isArray, self.next_declaration)
+		return '{ \n' + generate(self.isArray, self.next_declaration) + '} \n'
 
 class BasicTypeDeclaration():
 
@@ -104,8 +103,8 @@ class BasicTypeDeclaration():
 		elif self.type == 'float64':
 			value = RandomFloat()
 		else:
-			value = RandomBool
-		generate(self.isArray, value)
+			value = RandomBool()
+		return generate(self.isArray, value)
 
 class RandomString():
 
@@ -125,7 +124,7 @@ class RandomFloat():
 		return random.uniform(0, 1000)
 
 class RandomBool():
-	
+
 	def generate(self):
 		true = random.randint(0, 1)
 		if true:
@@ -141,7 +140,7 @@ def generate(isArray, value):
 		while i > 0:
 			s += value.generate() + ', \n'
 			i -= 1
-		s += ']'			
+		s += '] \n'			
 	else:
-		s = value.generate() + ', \n'
+		s = value.generate() + '\n'
 	return s

@@ -31,9 +31,9 @@ def p_field_array_empty(subexpressions):
     'field_array :'
     subexpressions[0] = { "esArray" : False}
 
-# T' -> []
+# T' -> [] T'
 def p_field_array(subexpressions):
-    'field_array : BRACKETS'
+    'field_array : BRACKETS field_array'
     subexpressions[0] = { "esArray" : True}
 
 # E -> string | int | float64 | bool
