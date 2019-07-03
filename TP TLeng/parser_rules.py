@@ -39,6 +39,7 @@ def p_field_array(subexpressions):
 # E -> string | int | float64 | bool
 def p_basic_type_declaration(subexpressions):
     'type_declaration : TYPE'
+    subexpressions[0] = BasicTypeDeclaration(subexpressions[1].value)
 
 # E -> id
 def p_type_ref_declaration(subexpressions):
@@ -48,6 +49,7 @@ def p_type_ref_declaration(subexpressions):
 # E -> struct{E'}
 def p_type_struct_declaration(subexpressions):
     'type_declaration : STRUCT LBRACE type_next_declaration RBRACE'
+    subexpressions[0] = TypeStructDeclaration(subexpressions[3])
 
 # E' -> lambda
 def p_type_next_declaration_empty(subexpressions):

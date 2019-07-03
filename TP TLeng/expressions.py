@@ -1,4 +1,5 @@
-from random import randint
+import random
+import string
 
 class PrimaryVarDeclaration():
 
@@ -68,15 +69,79 @@ class TypeRefDeclaration():
 		self.isArray = isArray
 	
 	def generate(self):
-		if self.isArray:
-			s = '['
-			i = randint(0, 5)
-			while i >= 0:
-				s = s + self.dicc.get(self.id.value).generate()
-				if i > 0:
-					s = s + ','
-				else:
-					s = s + ']'
-				i -= 1
+		generate(self.isArray, self.dicc.get(self.id.value))
+
+class TypeStructDeclaration():
+
+	def __init__(self, next_declaration):
+		self.next_declaration = next_declaration
+		self.referencias = self.next_declaration.referencias
+	
+	def setDicc(self, dicc, isArray):
+		self.dicc = dicc
+		self.isArray = isArray
+		self.next_declaration.setDicc(self.dicc)
+	
+	def generate(self):
+		generate(self.isArray, self.next_declaration)
+
+class BasicTypeDeclaration():
+
+	def __init__(self, basicType):
+		self.type = basicType
+		self.referencias = []
+
+	def setDicc(self, dicc, isArray):
+		self.dicc = dicc
+		self.isArray = isArray
+
+	def generate(self):
+		value = None
+		if self.type == 'string':
+			value = RandomString()
+		elif self.type == 'int':
+			value = RandomInt()
+		elif self.type == 'float64':
+			value = RandomFloat()
 		else:
-			s = self.dicc.get(self.id.value).generate()
+			value = RandomBool
+		generate(self.isArray, value)
+
+class RandomString():
+
+	def generate(self):
+		length = random.randint(1, 10)
+		letters = string.ascii_lowercase
+		return ''.join(random.choice(letters) for i in range(length))
+
+class RandomInt():
+
+	def generate(self):
+		return random.randint(-1000, 1000)
+
+class RandomFloat():
+
+	def generate(self):
+		return random.uniform(0, 1000)
+
+class RandomBool():
+	
+	def generate(self):
+		true = random.randint(0, 1)
+		if true:
+			return 'true'
+		else:
+			return 'false'
+
+def generate(isArray, value):
+	s = ''
+	if isArray:
+		s = '[ \n'
+		i = random.randint(0, 5)
+		while i > 0:
+			s += value.generate() + ', \n'
+			i -= 1
+		s += ']'			
+	else:
+		s = value.generate() + ', \n'
+	return s
