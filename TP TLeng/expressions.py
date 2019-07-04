@@ -24,7 +24,10 @@ class PrimaryVarDeclaration():
 			self.DFS(p, diccKeys, dicc, camino)
 
 	def DFS(self, p, diccKeys, dicc, camino):
-		k = dicc.get(p) #accedo a la estructura del E correspondiende (sigo la referencia)
+		if p in dicc:
+			k = dicc.get(p) #accedo a la estructura del E correspondiende (sigo la referencia)
+		else:
+			raise Exception("Se utilizan tipos sin definir")
 		while (k.referencias): #mientras siga habiendo referencias sin revisar
 			c = k.referencias[0] #tomo referencia arbitraria
 			if (c in camino): #si c ya est� en el camino quiere decir que se formar�a un ciclo
@@ -33,7 +36,8 @@ class PrimaryVarDeclaration():
 			else:
 				if c:
 					camino.append(c) #agrego c al camino
-				diccKeys.remove(c) #lo saco de las claves porque como estoy por revisarlo ahora no hace falta que lo revise nuevamente
+				if c in diccKeys:
+					diccKeys.remove(c) #lo saco de las claves porque como estoy por revisarlo ahora no hace falta que lo revise nuevamente
 				self.DFS(c, diccKeys, dicc, camino)
 				k.referencias.remove(c) #luego de chequear esta referencia la borro y contin�o para no revisarla nuevamente
 		camino.remove(p) #si ya cheque� todos los caminos que se desprenden de k entonces debo pasar a chequear otros caminos
