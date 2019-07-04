@@ -24,22 +24,27 @@ def p_var_next_declaration(subexpressions):
 # T -> id T' E
 def p_field_declaration(subexpressions):
     'field_declaration : ID field_array type_declaration'
-
+    id = subexpressions[1]
+    field_array = subexpressions[2]
+    type_declaration = subexpressions[3]
+    if id in type_declaration.referencias:
+        raise Exception('Referencia circular')
+    subexpressions[0] = FieldDeclaration(type_declaration.referencias, id, field_array, type_declaration)
 
 # T' -> lambda
 def p_field_array_empty(subexpressions):
     'field_array :'
-    subexpressions[0] = { "esArray" : False}
+    subexpressions[0] = { "cantArrays" : 0}
 
 # T' -> [] T'
 def p_field_array(subexpressions):
     'field_array : BRACKETS field_array'
-    subexpressions[0] = { "esArray" : True}
+    subexpressions[0] = { "cantArrays" : 1 + subexpressions[2]["cantArrays"] }
 
 # E -> string | int | float64 | bool
 def p_basic_type_declaration(subexpressions):
     'type_declaration : TYPE'
-    subexpressions[0] = BasicTypeDeclaration(subexpressions[1].value)
+    subexpressions[0] = BasicTypeDeclaration(subexpressions[1])
 
 # E -> id
 def p_type_ref_declaration(subexpressions):
@@ -54,11 +59,19 @@ def p_type_struct_declaration(subexpressions):
 # E' -> lambda
 def p_type_next_declaration_empty(subexpressions):
     'type_next_declaration :'
-    pass
+    subexpressions[0] = TypeNextDeclaration(True, list(), None, None)
 
 # E' -> T E'
 def p_type_next_declaration(subexpressions):
     'type_next_declaration : field_declaration type_next_declaration'
+    field_declaration = subexpressions[1]
+    type_next_declaration = subexpressions[2]
+    # Si es vacía, no le hago append
+    if not type_next_declaration.referencias:
+        referencias = field_declaration.referencias
+    else:
+        referencias = field_declaration.referencias.append(type_next_declaration.referencias)
+    subexpressions[0] = TypeNextDeclaration(False, referencias, field_declaration, type_next_declaration)
 
 def p_error(token):
     message = "[Syntax error]"

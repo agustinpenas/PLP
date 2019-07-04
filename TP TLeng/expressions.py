@@ -9,7 +9,7 @@ class PrimaryVarDeclaration():
 		self.dicc = dict()
 
 	def evaluate(self):
-		self.field.setDicc(self.dicc)
+		self.field.setDicc(self.dicc, False)
 		self.var_next.setDicc(self.dicc)
 		self.refCheck(self.dicc)
 		exp = self.field.generate()
@@ -20,7 +20,7 @@ class PrimaryVarDeclaration():
 		while (diccKeys): #mientras siga habiendo claves por revisar
 			p = diccKeys[0] #agarro una clave arbitraria, la primera
 			diccKeys.remove(p) #la saco de las claves porque ya la voy a revisar
-			camino = list(p) #empiezo el camino de las referencias con p siendo el punto de partida
+			camino = [p] #empiezo el camino de las referencias con p siendo el punto de partida
 			self.DFS(p, diccKeys, dicc, camino)
 
 	def DFS(self, p, diccKeys, dicc, camino):
@@ -35,7 +35,7 @@ class PrimaryVarDeclaration():
 				diccKeys.remove(c) #lo saco de las claves porque como estoy por revisarlo ahora no hace falta que lo revise nuevamente
 				self.DFS(c, diccKeys, dicc, camino)
 				k.referencias.remove(c) #luego de chequear esta referencia la borro y contin�o para no revisarla nuevamente
-		camino.remove(k) #si ya cheque� todos los caminos que se desprenden de k entonces debo pasar a chequear otros caminos
+		camino.remove(p) #si ya cheque� todos los caminos que se desprenden de k entonces debo pasar a chequear otros caminos
 
 class VarDeclaration():
 
@@ -57,42 +57,84 @@ class VarNextDeclaration():
 		if not self.isEmpty:
 			self.var_next.setDicc(dicc)
 
+class FieldDeclaration():
+
+	def __init__(self, referencias, id,  field_array, type_declaration):
+		self.referencias = referencias
+		self.id = id
+		self.type_declaration = type_declaration
+		self.field_array = field_array
+
+	def setDicc(self, dicc, inStruct):
+		if inStruct:
+			if self.id in dicc:
+				raise Exception('Tipo ya definido')
+			else:
+				dicc[self.id] = self.type_declaration
+				self.type_declaration.setDicc(dicc, self.field_array["cantArrays"])
+		else:
+			self.type_declaration.setDicc(dicc, self.field_array["cantArrays"])
+
+	def generate(self):
+		return '"' + self.id + '"' + ':' + self.type_declaration.generate()
+
+class TypeNextDeclaration():
+
+	def __init__(self, endOfStruct, referencias, field_declaration, type_next_declaration):
+		self.endOfStruct = endOfStruct
+		self.referencias = referencias
+		self.field_declaration = field_declaration
+		self.type_next_declaration = type_next_declaration
+
+	def setDicc(self, dicc):
+		if not self.endOfStruct:
+			self.field_declaration.setDicc(dicc, False)
+			self.type_next_declaration.setDicc(dicc)
+
+	def generate(self):
+		s = ''
+		if not self.endOfStruct:
+			s = self.field_declaration.generate()
+			if not self.type_next_declaration.endOfStruct:
+				s += ', \n' + self.type_next_declaration.generate()
+		return s
+
 class TypeRefDeclaration():
 
 	def __init__(self, id):
 		self.id = id
-		self.referencias = [id.value]
+		self.referencias = [id]
 	
-	def setDicc(self, dicc, isArray):
+	def setDicc(self, dicc, cantArrays):
 		self.dicc = dicc
-		self.isArray = isArray
+		self.cantArrays = cantArrays
 	
 	def generate(self):
-		return generate(self.isArray, self.dicc.get(self.id.value))
+		return generate(self.cantArrays, self.dicc.get(self.id))
 
 class TypeStructDeclaration():
 
 	def __init__(self, next_declaration):
 		self.next_declaration = next_declaration
-		self.referencias = self.next_declaration.referencias
+		self.referencias = next_declaration.referencias
 	
-	def setDicc(self, dicc, isArray):
+	def setDicc(self, dicc, cantArrays):
 		self.dicc = dicc
-		self.isArray = isArray
+		self.cantArrays = cantArrays
 		self.next_declaration.setDicc(self.dicc)
 	
 	def generate(self):
-		return '{ \n' + generate(self.isArray, self.next_declaration) + '} \n'
+		return '{ \n' + generate(self.cantArrays, self.next_declaration) + '}'
 
 class BasicTypeDeclaration():
 
 	def __init__(self, basicType):
 		self.type = basicType
-		self.referencias = []
+		self.referencias = list()
 
-	def setDicc(self, dicc, isArray):
+	def setDicc(self, dicc, cantArrays):
 		self.dicc = dicc
-		self.isArray = isArray
+		self.cantArrays = cantArrays
 
 	def generate(self):
 		value = None
@@ -104,24 +146,24 @@ class BasicTypeDeclaration():
 			value = RandomFloat()
 		else:
 			value = RandomBool()
-		return generate(self.isArray, value)
+		return generate(self.cantArrays, value)
 
 class RandomString():
 
 	def generate(self):
-		length = random.randint(1, 10)
+		length = random.randint(5, 10)
 		letters = string.ascii_lowercase
 		return ''.join(random.choice(letters) for i in range(length))
 
 class RandomInt():
 
 	def generate(self):
-		return random.randint(-1000, 1000)
+		return str(random.randint(-1000, 1000))
 
 class RandomFloat():
 
 	def generate(self):
-		return random.uniform(0, 1000)
+		return str(random.uniform(0, 1000))
 
 class RandomBool():
 
@@ -132,15 +174,18 @@ class RandomBool():
 		else:
 			return 'false'
 
-def generate(isArray, value):
+def generate(cantArrays, value):
 	s = ''
-	if isArray:
+	if cantArrays > 0:
 		s = '[ \n'
 		i = random.randint(0, 5)
 		while i > 0:
-			s += value.generate() + ', \n'
+			if cantArrays > 1:
+				s += generate(cantArrays - 1, value)
+			else:
+				s += value.generate() + ', \n'
 			i -= 1
-		s += '] \n'			
+		s += ']'			
 	else:
-		s = value.generate() + '\n'
+		s = value.generate() 
 	return s
