@@ -70,7 +70,7 @@ def p_type_next_declaration(subexpressions):
     if not type_next_declaration.referencias:
         referencias = field_declaration.referencias
     else:
-        referencias = field_declaration.referencias.append(type_next_declaration.referencias)
+        referencias = field_declaration.referencias + type_next_declaration.referencias
     subexpressions[0] = TypeNextDeclaration(False, referencias, field_declaration, type_next_declaration)
 
 def p_error(token):
