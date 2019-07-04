@@ -77,7 +77,8 @@ class FieldDeclaration():
 	def setDicc(self, dicc, inStruct):
 		if not inStruct:
 			if self.id in dicc:
-				raise Exception('Tipo ya definido')
+				stderr.write('El tipo "' + self.id + '" ya está definido')
+				exit()
 			else:
 				dicc[self.id] = self.type_declaration
 				self.type_declaration.setDicc(dicc, self.field_array["cantArrays"])
