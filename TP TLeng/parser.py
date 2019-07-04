@@ -1,20 +1,15 @@
 import lexer_rules
 import parser_rules
-
-from sys import argv, exit
+import fileinput
 
 from ply.lex import lex
 from ply.yacc import yacc
 
 
 if __name__ == "__main__":
-    if len(argv) != 2:
-        print ("Invalid arguments.")
-        print ("Use:")
-        print ("  parser.py expression")
-        exit()
-
-    text = argv[1]
+    text = ''
+    for line in fileinput.input():
+        text += line
 
     lexer = lex(module=lexer_rules)
     parser = yacc(module=parser_rules)

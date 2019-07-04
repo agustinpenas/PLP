@@ -1,5 +1,6 @@
 import random
 import string
+from sys import stderr, exit
 
 class PrimaryVarDeclaration():
 
@@ -12,7 +13,7 @@ class PrimaryVarDeclaration():
 		self.field.setDicc(self.dicc, True)
 		self.var_next.setDicc(self.dicc)
 		self.refCheck(self.dicc)
-		exp = self.field.generate()
+		exp = self.field.generate(True)
 		return exp
 
 	def refCheck(self, dicc):
@@ -27,12 +28,15 @@ class PrimaryVarDeclaration():
 		if p in dicc:
 			k = dicc.get(p) #accedo a la estructura del E correspondiende (sigo la referencia)
 		else:
-			raise Exception("Se utilizan tipos sin definir")
+			stderr.write('El tipo "' + p + '" está sin definir')
+			exit()
+			#raise Exception("Se utilizan tipos sin definir")
 		while (k.referencias): #mientras siga habiendo referencias sin revisar
 			c = k.referencias[0] #tomo referencia arbitraria
 			if (c in camino): #si c ya est� en el camino quiere decir que se formar�a un ciclo
 				#error de referencia circular
-				raise Exception("Hay referencias circulares en los structs")
+				stderr.write('Hay referencias circulares en el tipo "' + p + '"')
+				exit()
 			else:
 				if c:
 					camino.append(c) #agrego c al camino
@@ -80,8 +84,12 @@ class FieldDeclaration():
 		else:
 			self.type_declaration.setDicc(dicc, self.field_array["cantArrays"])
 
-	def generate(self):
-		return '"' + self.id + '"' + ':' + self.type_declaration.generate()
+	def generate(self, isPrimaryType):
+		if isPrimaryType:
+			s = self.type_declaration.generate()
+		else:
+			s = '"' + self.id + '"' + ':' + self.type_declaration.generate()
+		return s
 
 class TypeNextDeclaration():
 
@@ -99,7 +107,7 @@ class TypeNextDeclaration():
 	def generate(self):
 		s = ''
 		if not self.endOfStruct:
-			s = self.field_declaration.generate()
+			s = self.field_declaration.generate(False)
 			if not self.type_next_declaration.endOfStruct:
 				s += ', \n' + self.type_next_declaration.generate()
 		return s
@@ -129,7 +137,7 @@ class TypeStructDeclaration():
 		self.next_declaration.setDicc(self.dicc)
 	
 	def generate(self):
-		return '{ \n' + generate(self.cantArrays, self.next_declaration) + '}'
+		return '{ \n' + generate(self.cantArrays, self.next_declaration) + '\n}'
 
 class BasicTypeDeclaration():
 
@@ -158,7 +166,7 @@ class RandomString():
 	def generate(self):
 		length = random.randint(5, 10)
 		letters = string.ascii_lowercase
-		return ''.join(random.choice(letters) for i in range(length))
+		return '"' + ''.join(random.choice(letters) for i in range(length)) + '"'
 
 class RandomInt():
 
@@ -168,7 +176,7 @@ class RandomInt():
 class RandomFloat():
 
 	def generate(self):
-		return str(random.uniform(0, 1000))
+		return str('{:.1f}'.format(random.uniform(0, 1000)))
 
 class RandomBool():
 
@@ -188,7 +196,10 @@ def generate(cantArrays, value):
 			if cantArrays > 1:
 				s += generate(cantArrays - 1, value)
 			else:
-				s += value.generate() + ', \n'
+				if i == 1:
+					s += value.generate() + '\n'
+				else:
+					s += value.generate() + ', \n'
 			i -= 1
 		s += ']'			
 	else:

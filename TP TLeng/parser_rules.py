@@ -1,5 +1,6 @@
 from lexer_rules import tokens
 from expressions import *
+from sys import stderr, exit
 
 # A -> type T S'
 def p_primary_var_declaration(subexpressions):
@@ -28,7 +29,8 @@ def p_field_declaration(subexpressions):
     field_array = subexpressions[2]
     type_declaration = subexpressions[3]
     if id in type_declaration.referencias:
-        raise Exception('Referencia circular')
+        stderr.write('Hay una referencia circular sobre el tipo "' + id + '"')
+        exit()
     subexpressions[0] = FieldDeclaration(type_declaration.referencias, id, field_array, type_declaration)
 
 # T' -> lambda
@@ -66,11 +68,7 @@ def p_type_next_declaration(subexpressions):
     'type_next_declaration : field_declaration type_next_declaration'
     field_declaration = subexpressions[1]
     type_next_declaration = subexpressions[2]
-    # Si es vacía, no le hago append
-    if not type_next_declaration.referencias:
-        referencias = field_declaration.referencias
-    else:
-        referencias = field_declaration.referencias + type_next_declaration.referencias
+    referencias = field_declaration.referencias + type_next_declaration.referencias
     subexpressions[0] = TypeNextDeclaration(False, referencias, field_declaration, type_next_declaration)
 
 def p_error(token):
