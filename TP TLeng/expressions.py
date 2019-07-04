@@ -2,18 +2,19 @@ import random
 import string
 from sys import stderr, exit
 
-class PrimaryVarDeclaration():
+# A -> type T S'
+class PrimaryTypeDefinition():
 
-	def __init__(self, field, var_next):
-		self.field  = field
-		self.var_next = var_next
+	def __init__(self, type_declaration, new_type):
+		self.type_declaration  = type_declaration
+		self.new_type = new_type
 		self.dicc = dict()
 
 	def evaluate(self):
-		self.field.setDicc(self.dicc, False)
-		self.var_next.setDicc(self.dicc)
+		self.type_declaration.setDicc(self.dicc, False)
+		self.new_type.setDicc(self.dicc)
 		self.refCheck(self.dicc)
-		exp = self.field.generate(True)
+		exp = self.type_declaration.generate(True)
 		return exp
 
 	def refCheck(self, dicc):
@@ -30,11 +31,9 @@ class PrimaryVarDeclaration():
 		else:
 			stderr.write('El tipo "' + p + '" está sin definir')
 			exit()
-			#raise Exception("Se utilizan tipos sin definir")
 		while (k.referencias): #mientras siga habiendo referencias sin revisar
 			c = k.referencias[0] #tomo referencia arbitraria
-			if (c in camino): #si c ya est� en el camino quiere decir que se formar�a un ciclo
-				#error de referencia circular
+			if (c in camino): #si c ya está en el camino quiere decir que se formaría un ciclo
 				stderr.write('Hay referencias circulares en el tipo "' + p + '"')
 				exit()
 			else:
@@ -44,34 +43,37 @@ class PrimaryVarDeclaration():
 					diccKeys.remove(c) #lo saco de las claves porque como estoy por revisarlo ahora no hace falta que lo revise nuevamente
 				self.DFS(c, diccKeys, dicc, camino)
 				k.referencias.remove(c) #luego de chequear esta referencia la borro y contin�o para no revisarla nuevamente
-		camino.remove(p) #si ya cheque� todos los caminos que se desprenden de k entonces debo pasar a chequear otros caminos
+		camino.remove(p) #si ya chequeé todos los caminos que se desprenden de k entonces debo pasar a chequear otros caminos
 
-class VarDeclaration():
+# S -> type T S'
+class TypeDefinition():
 
-	def __init__(self, field, var_next):
-		self.field 	  = field
-		self.var_next = var_next
+	def __init__(self, type_declaration, new_type):
+		self.type_declaration = type_declaration
+		self.new_type = new_type
 
 	def setDicc(self, dicc):
-		self.field.setDicc(dicc, False)
-		self.var_next.setDicc(dicc)
+		self.type_declaration.setDicc(dicc, False)
+		self.new_type.setDicc(dicc)
 
-class VarNextDeclaration():
+# S' -> S | lambda
+class NewTypeDefinition():
 
-	def __init__(self, var_next, isEmpty):
-		self.var_next = var_next
+	def __init__(self, new_type, isEmpty):
+		self.new_type = new_type
 		self.isEmpty  = isEmpty
 
 	def setDicc(self, dicc):
 		if not self.isEmpty:
-			self.var_next.setDicc(dicc)
+			self.new_type.setDicc(dicc)
 
-class FieldDeclaration():
+# T -> id T' E
+class TypeDeclaration():
 
-	def __init__(self, referencias, id,  field_array, type_declaration):
+	def __init__(self, referencias, id,  field_array, _type):
 		self.referencias = referencias
 		self.id = id
-		self.type_declaration = type_declaration
+		self.type = _type
 		self.field_array = field_array
 
 	def setDicc(self, dicc, inStruct):
@@ -80,40 +82,42 @@ class FieldDeclaration():
 				stderr.write('El tipo "' + self.id + '" ya está definido')
 				exit()
 			else:
-				dicc[self.id] = self.type_declaration
-				self.type_declaration.setDicc(dicc, self.field_array["cantArrays"])
+				dicc[self.id] = self.type
+				self.type.setDicc(dicc, self.field_array["cantArrays"])
 		else:
-			self.type_declaration.setDicc(dicc, self.field_array["cantArrays"])
+			self.type.setDicc(dicc, self.field_array["cantArrays"])
 
 	def generate(self, isPrimaryType):
 		if isPrimaryType:
-			s = self.type_declaration.generate()
+			s = self.type.generate()
 		else:
-			s = '"' + self.id + '"' + ':' + self.type_declaration.generate()
+			s = '"' + self.id + '"' + ':' + self.type.generate()
 		return s
 
-class TypeNextDeclaration():
+# E' -> T E' | lambda
+class StructField():
 
-	def __init__(self, endOfStruct, referencias, field_declaration, type_next_declaration):
+	def __init__(self, endOfStruct, referencias, type_declaration, next_struct_field):
 		self.endOfStruct = endOfStruct
 		self.referencias = referencias
-		self.field_declaration = field_declaration
-		self.type_next_declaration = type_next_declaration
+		self.type_declaration = type_declaration
+		self.next_struct_field = next_struct_field
 
 	def setDicc(self, dicc):
 		if not self.endOfStruct:
-			self.field_declaration.setDicc(dicc, True)
-			self.type_next_declaration.setDicc(dicc)
+			self.type_declaration.setDicc(dicc, True)
+			self.next_struct_field.setDicc(dicc)
 
 	def generate(self):
 		s = ''
 		if not self.endOfStruct:
-			s = self.field_declaration.generate(False)
-			if not self.type_next_declaration.endOfStruct:
-				s += ', \n' + self.type_next_declaration.generate()
+			s = self.type_declaration.generate(False)
+			if not self.next_struct_field.endOfStruct:
+				s += ', \n' + self.next_struct_field.generate()
 		return s
 
-class TypeRefDeclaration():
+# E -> id
+class TypeRef():
 
 	def __init__(self, id):
 		self.id = id
@@ -126,21 +130,23 @@ class TypeRefDeclaration():
 	def generate(self):
 		return generate(self.cantArrays, self.dicc.get(self.id))
 
-class TypeStructDeclaration():
+# E -> struct{E'}
+class TypeStruct():
 
-	def __init__(self, next_declaration):
-		self.next_declaration = next_declaration
-		self.referencias = next_declaration.referencias
+	def __init__(self, struct_field):
+		self.struct_field = struct_field
+		self.referencias = struct_field.referencias
 	
 	def setDicc(self, dicc, cantArrays):
 		self.dicc = dicc
 		self.cantArrays = cantArrays
-		self.next_declaration.setDicc(self.dicc)
+		self.struct_field.setDicc(self.dicc)
 	
 	def generate(self):
-		return '{ \n' + generate(self.cantArrays, self.next_declaration) + '\n}'
+		return '{ \n' + generate(self.cantArrays, self.struct_field) + '\n}'
 
-class BasicTypeDeclaration():
+# E -> string | int | float64 | bool
+class BasicType():
 
 	def __init__(self, basicType):
 		self.type = basicType

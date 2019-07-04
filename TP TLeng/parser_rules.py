@@ -3,73 +3,73 @@ from expressions import *
 from sys import stderr, exit
 
 # A -> type T S'
-def p_primary_var_declaration(subexpressions):
-    'primary_var_declaration : TYPEDEF field_declaration var_next_declaration'
-    subexpressions[0] = PrimaryVarDeclaration(subexpressions[2], subexpressions[3])
+def p_primary_type_definition(subexpressions):
+    'primary_type_definition : TYPEDEF type_declaration new_type_definition'
+    subexpressions[0] = PrimaryTypeDefinition(subexpressions[2], subexpressions[3])
 
 # S -> type T S'
-def p_var_declaration(subexpressions):
-    'var_declaration : TYPEDEF field_declaration var_next_declaration'
-    subexpressions[0] = VarDeclaration(subexpressions[2], subexpressions[3])
+def p_type_definition(subexpressions):
+    'type_definition : TYPEDEF type_declaration new_type_definition'
+    subexpressions[0] = TypeDefinition(subexpressions[2], subexpressions[3])
 
 # S' -> lambda
-def p_var_next_declaration_empty(subexpressions):
-    'var_next_declaration :'
-    subexpressions[0] = VarNextDeclaration(None, True)
+def p_new_type_definition_empty(subexpressions):
+    'new_type_definition :'
+    subexpressions[0] = NewTypeDefinition(None, True)
 
 # S' -> S
-def p_var_next_declaration(subexpressions):
-    'var_next_declaration : var_declaration'
-    subexpressions[0] = VarNextDeclaration(subexpressions[1], False)
+def p_new_type_definition(subexpressions):
+    'new_type_definition : type_definition'
+    subexpressions[0] = NewTypeDefinition(subexpressions[1], False)
 
 # T -> id T' E
-def p_field_declaration(subexpressions):
-    'field_declaration : ID field_array type_declaration'
+def p_type_declaration(subexpressions):
+    'type_declaration : ID is_array type'
     id = subexpressions[1]
-    field_array = subexpressions[2]
-    type_declaration = subexpressions[3]
-    if id in type_declaration.referencias:
+    is_array = subexpressions[2]
+    _type = subexpressions[3]
+    if id in _type.referencias:
         stderr.write('Hay una referencia circular sobre el tipo "' + id + '"')
         exit()
-    subexpressions[0] = FieldDeclaration(type_declaration.referencias, id, field_array, type_declaration)
+    subexpressions[0] = TypeDeclaration(_type.referencias, id, is_array, _type)
 
 # T' -> lambda
-def p_field_array_empty(subexpressions):
-    'field_array :'
+def p_is_array_empty(subexpressions):
+    'is_array :'
     subexpressions[0] = { "cantArrays" : 0}
 
 # T' -> [] T'
-def p_field_array(subexpressions):
-    'field_array : BRACKETS field_array'
+def p_is_array(subexpressions):
+    'is_array : BRACKETS is_array'
     subexpressions[0] = { "cantArrays" : 1 + subexpressions[2]["cantArrays"] }
 
 # E -> string | int | float64 | bool
-def p_basic_type_declaration(subexpressions):
-    'type_declaration : TYPE'
-    subexpressions[0] = BasicTypeDeclaration(subexpressions[1])
+def p_basic_type(subexpressions):
+    'type : TYPE'
+    subexpressions[0] = BasicType(subexpressions[1])
 
 # E -> id
-def p_type_ref_declaration(subexpressions):
-    'type_declaration : ID'
-    subexpressions[0] = TypeRefDeclaration(subexpressions[1])
+def p_type_ref(subexpressions):
+    'type : ID'
+    subexpressions[0] = TypeRef(subexpressions[1])
 
 # E -> struct{E'}
-def p_type_struct_declaration(subexpressions):
-    'type_declaration : STRUCT LBRACE type_next_declaration RBRACE'
-    subexpressions[0] = TypeStructDeclaration(subexpressions[3])
+def p_type_struct(subexpressions):
+    'type : STRUCT LBRACE struct_field RBRACE'
+    subexpressions[0] = TypeStruct(subexpressions[3])
 
 # E' -> lambda
-def p_type_next_declaration_empty(subexpressions):
-    'type_next_declaration :'
-    subexpressions[0] = TypeNextDeclaration(True, list(), None, None)
+def p_struct_field_empty(subexpressions):
+    'struct_field :'
+    subexpressions[0] = StructField(True, list(), None, None)
 
 # E' -> T E'
-def p_type_next_declaration(subexpressions):
-    'type_next_declaration : field_declaration type_next_declaration'
-    field_declaration = subexpressions[1]
-    type_next_declaration = subexpressions[2]
-    referencias = field_declaration.referencias + type_next_declaration.referencias
-    subexpressions[0] = TypeNextDeclaration(False, referencias, field_declaration, type_next_declaration)
+def p_struct_field(subexpressions):
+    'struct_field : type_declaration struct_field'
+    type_declaration = subexpressions[1]
+    struct_field = subexpressions[2]
+    referencias = type_declaration.referencias + struct_field.referencias
+    subexpressions[0] = StructField(False, referencias, type_declaration, struct_field)
 
 def p_error(token):
     message = "[Syntax error]"
