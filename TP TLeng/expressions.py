@@ -10,7 +10,7 @@ class PrimaryVarDeclaration():
 		self.dicc = dict()
 
 	def evaluate(self):
-		self.field.setDicc(self.dicc, True)
+		self.field.setDicc(self.dicc, False)
 		self.var_next.setDicc(self.dicc)
 		self.refCheck(self.dicc)
 		exp = self.field.generate(True)
@@ -53,7 +53,7 @@ class VarDeclaration():
 		self.var_next = var_next
 
 	def setDicc(self, dicc):
-		self.field.setDicc(dicc, True)
+		self.field.setDicc(dicc, False)
 		self.var_next.setDicc(dicc)
 
 class VarNextDeclaration():
@@ -75,7 +75,7 @@ class FieldDeclaration():
 		self.field_array = field_array
 
 	def setDicc(self, dicc, inStruct):
-		if inStruct:
+		if not inStruct:
 			if self.id in dicc:
 				raise Exception('Tipo ya definido')
 			else:
@@ -101,7 +101,7 @@ class TypeNextDeclaration():
 
 	def setDicc(self, dicc):
 		if not self.endOfStruct:
-			self.field_declaration.setDicc(dicc, False)
+			self.field_declaration.setDicc(dicc, True)
 			self.type_next_declaration.setDicc(dicc)
 
 	def generate(self):
@@ -171,7 +171,7 @@ class RandomString():
 class RandomInt():
 
 	def generate(self):
-		return str(random.randint(-1000, 1000))
+		return str(random.randint(0, 1000))
 
 class RandomFloat():
 
