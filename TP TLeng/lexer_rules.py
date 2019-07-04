@@ -18,7 +18,7 @@ t_RBRACE = r"\}"
 t_BRACKETS = r"\[]"
 
 def t_ID(token):
-    r"[_a-zA-Z][_a-zA-Z0-9]*"
+    r"[a-z][_a-zA-Z0-9]*"
     token.type = reserved.get(token.value, 'ID')
     if token.value in types:
         token.type = 'TYPE'

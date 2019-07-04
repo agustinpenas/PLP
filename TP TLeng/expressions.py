@@ -9,7 +9,7 @@ class PrimaryVarDeclaration():
 		self.dicc = dict()
 
 	def evaluate(self):
-		self.field.setDicc(self.dicc, False)
+		self.field.setDicc(self.dicc, True)
 		self.var_next.setDicc(self.dicc)
 		self.refCheck(self.dicc)
 		exp = self.field.generate()
@@ -31,7 +31,8 @@ class PrimaryVarDeclaration():
 				#error de referencia circular
 				raise Exception("Hay referencias circulares en los structs")
 			else:
-				camino.append(c) #agrego c al camino
+				if c:
+					camino.append(c) #agrego c al camino
 				diccKeys.remove(c) #lo saco de las claves porque como estoy por revisarlo ahora no hace falta que lo revise nuevamente
 				self.DFS(c, diccKeys, dicc, camino)
 				k.referencias.remove(c) #luego de chequear esta referencia la borro y contin�o para no revisarla nuevamente
