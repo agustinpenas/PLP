@@ -2,10 +2,10 @@ from lexer_rules import tokens
 from expressions import *
 from sys import stderr, exit
 
-# A -> type T S'
+# A -> S
 def p_primary_type_definition(subexpressions):
-    'primary_type_definition : TYPEDEF type_declaration new_type_definition'
-    subexpressions[0] = PrimaryTypeDefinition(subexpressions[2], subexpressions[3])
+    'primary_type_definition : type_definition'
+    subexpressions[0] = PrimaryTypeDefinition(subexpressions[1])
 
 # S -> type T S'
 def p_type_definition(subexpressions):
