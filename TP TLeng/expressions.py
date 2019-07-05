@@ -10,7 +10,7 @@ class PrimaryTypeDefinition():
 		self.dicc = dict()
 
 	def evaluate(self):
-		self.type_definition.setDicc(self.dicc, False)
+		self.type_definition.setDicc(self.dicc)
 		self.refCheck(self.dicc)
 		exp = self.type_definition.generate()
 		return exp
