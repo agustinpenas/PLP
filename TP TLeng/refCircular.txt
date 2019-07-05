@@ -15,7 +15,7 @@ type pais struct {
 }
 
 type ciudad struct {
-	dueño grupocapitalista
+	jefe grupocapitalista
 }
 
 type grupocapitalista struct {
