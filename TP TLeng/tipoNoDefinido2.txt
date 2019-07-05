@@ -15,5 +15,5 @@ type pais struct {
 }
 
 type guillermo struct {
-	apellido francella
+	apellido [][]francella
 }
