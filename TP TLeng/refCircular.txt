@@ -1,0 +1,24 @@
+type persona struct {
+	nombre	string
+	edad	int
+	ventas	[]float64
+	activo	bool
+}
+
+type pais struct {
+	nombre	string	
+	capital ciudad
+	codigo	struct {
+		prefijo int
+		sufijo int
+	}
+}
+
+type ciudad struct {
+	dueño grupocapitalista
+}
+
+type grupocapitalista struct {
+	nacionalidad pais
+}
+
