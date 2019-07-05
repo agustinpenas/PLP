@@ -6,7 +6,7 @@ from sys import stderr, exit
 class PrimaryTypeDefinition():
 
 	def __init__(self, type_definition):
-		self.type_declaration  = type_definition
+		self.type_definition  = type_definition
 		self.dicc = dict()
 
 	def evaluate(self):
