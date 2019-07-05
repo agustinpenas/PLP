@@ -203,10 +203,11 @@ def generate(cantArrays, value):
 			if cantArrays > 1:
 				s += generate(cantArrays - 1, value)
 			else:
-				if i == 1:
-					s += value.generate() + '\n'
-				else:
-					s += value.generate() + ', \n'
+				s += value.generate()
+			if i == 1:
+				s += ' \n'
+			else:
+				s += ', \n'
 			i -= 1
 		s += ']'			
 	else:
