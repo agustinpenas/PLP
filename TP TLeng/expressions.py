@@ -2,19 +2,17 @@ import random
 import string
 from sys import stderr, exit
 
-# A -> type T S'
+# A -> S
 class PrimaryTypeDefinition():
 
-	def __init__(self, type_declaration, new_type):
-		self.type_declaration  = type_declaration
-		self.new_type = new_type
+	def __init__(self, type_definition):
+		self.type_declaration  = type_definition
 		self.dicc = dict()
 
 	def evaluate(self):
-		self.type_declaration.setDicc(self.dicc, False)
-		self.new_type.setDicc(self.dicc)
+		self.type_definition.setDicc(self.dicc, False)
 		self.refCheck(self.dicc)
-		exp = self.type_declaration.generate(True)
+		exp = self.type_definition.generate()
 		return exp
 
 	def refCheck(self, dicc):
@@ -55,7 +53,12 @@ class TypeDefinition():
 	def setDicc(self, dicc):
 		self.type_declaration.setDicc(dicc, False)
 		self.new_type.setDicc(dicc)
+		
+	def generate(self):
+		s = self.type_declaration.generate(True)
+		return s
 
+	
 # S' -> S | lambda
 class NewTypeDefinition():
 
