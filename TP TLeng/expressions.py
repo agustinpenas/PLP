@@ -143,7 +143,12 @@ class TypeStruct():
 		self.struct_field.setDicc(self.dicc)
 	
 	def generate(self):
-		return '{ \n' + generate(self.cantArrays, self.struct_field) + '\n}'
+		if self.cantArrays > 0:
+			s = self.cantArrays
+			self.cantArrays = 0
+			return generate(s, self)
+		else:
+			return '{ \n' + generate(self.cantArrays, self.struct_field) + '\n}'
 
 # E -> string | int | float64 | bool
 class BasicType():
